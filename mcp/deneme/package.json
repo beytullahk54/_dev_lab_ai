@@ -1,0 +1,25 @@
+{
+  "name": "node-mcp-ornek",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Node.js ile basit MCP (Model Context Protocol) sunucusu örneği",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "node",
+    "stdio"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "zod": "^3.23.8"
+  }
+}
