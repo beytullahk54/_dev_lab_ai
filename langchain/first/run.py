@@ -3,6 +3,9 @@ from typing import TypedDict, Literal
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_ollama import ChatOllama  # OpenAI yerine Ollama kullanıyoruz
+from qdrant_client import QdrantClient
+from qdrant_client.models import PointStruct, Distance, VectorParams
+from embedding_engine import text_to_vector
 
 # --- 3. BİLİŞİM HUKUKU VERİ TABANI (RAG SİMÜLASYONU) ---
 IT_LEGAL_DOCS = [
@@ -24,6 +27,11 @@ llm = ChatOllama(
     temperature=0,  # Router işlemleri için tutarlılık önemli
     num_predict=1024
 )
+llm_qwen1 = ChatOllama(
+    model="gemma3:1b",
+    temperature=0,  # Router işlemleri için tutarlılık önemli
+    num_predict=1024
+)
 
 # --- 3. NODE'LAR (AJANLAR) ---
 
@@ -37,6 +45,7 @@ def main_router_agent(state: AgentState):
     - 'it_legal': Bilişim hukuku, KVKK, siber suçlar, internet yasaları.
     - "legal": Hukuk, kanunlar ve sözleşmeler.
     - "greeting": Merhaba, nasılsın gibi günlük sohbetler.
+    - "vektor": Vektör ile başlıyorsa buraya yönlendir
     
     Sadece kategoriyi tek kelime olarak cevapla (örn: math).
     """
@@ -51,6 +60,7 @@ def main_router_agent(state: AgentState):
     if "it_legal" in category: category = "it_legal"
     elif "math" in category: category = "math"
     elif "legal" in category: category = "legal"
+    elif "vektor" in category: category = "vektor"
     else: category = "greeting"
     
     print(f"🔀 Karar: {category.upper()}")
@@ -75,12 +85,12 @@ def it_legal_rag_node(state: AgentState):
 
 def math_expert_node(state: AgentState):
     print("🧮 Qwen3 Matematik Uzmanı çalışıyor...")
-    response = llm.invoke(f"Bir matematik profesörü olarak çöz: {state['user_query']}")
+    response = llm_qwen1.invoke(f"Bir matematik profesörü olarak çöz: {state['user_query']}")
     return {"final_answer": response.content}
 
 def legal_expert_node(state: AgentState):
     print("⚖️  Qwen3 Hukuk Uzmanı çalışıyor...")
-    response = llm.invoke(f"Bir avukat olarak Türk Hukukuna göre cevapla: {state['user_query']}")
+    response = llm_qwen1.invoke(f"Bir avukat olarak Türk Hukukuna göre cevapla: {state['user_query']}")
     return {"final_answer": response.content}
 
 def greeting_node(state: AgentState):
@@ -88,9 +98,38 @@ def greeting_node(state: AgentState):
     response = llm.invoke(f"Nazikçe selamla: {state['user_query']}")
     return {"final_answer": response.content}
 
+def vektor_rag_node(state: AgentState):
+    """Vektör RAG AJANI: Mesajı vektörde sorgular"""
+    print("👋 Vektör Ajanı Çalışıyor...")
+
+    client = QdrantClient(url="http://localhost:6333")
+    
+    sorgu_vektoru = text_to_vector(state['user_query'])
+    search_result = client.query_points(
+        collection_name="test_collection_2",
+        query=sorgu_vektoru,
+        limit=50,
+        score_threshold=0.70,
+        with_payload=True
+    ).points
+
+    print(search_result)
+    temiz_liste = [point.payload.get("content", "") for point in search_result]
+    context = "\n".join(temiz_liste)
+    
+    prompt = f"""
+    SADECE aşağıdaki maddelere dayanarak cevap ver:
+    {context}
+    
+    Soru: {state['user_query']}
+    """
+
+    response = llm_qwen1.invoke(prompt)
+    return {"final_answer": response.content}
+
 # --- 4. GRAFİK VE YÖNLENDİRME MANTIĞI ---
 
-def route_decision(state: AgentState) -> Literal["math", "legal", "greeting"]:
+def route_decision(state: AgentState) -> Literal["math", "legal", "greeting","vektor"]:
     return state["intent"]
 
 workflow = StateGraph(AgentState)
@@ -100,6 +139,7 @@ workflow.add_node("it_legal_expert", it_legal_rag_node) # Yeni RAG Node
 workflow.add_node("math_expert", math_expert_node)
 workflow.add_node("legal_expert", legal_expert_node)
 workflow.add_node("greeting_expert", greeting_node)
+workflow.add_node("vektor_rag_expert", vektor_rag_node)
 
 workflow.set_entry_point("main_agent")
 
@@ -110,7 +150,8 @@ workflow.add_conditional_edges(
         "math": "math_expert",
         "it_legal": "it_legal_expert",
         "legal": "legal_expert",
-        "greeting": "greeting_expert"
+        "greeting": "greeting_expert",
+        "vektor": "vektor_rag_expert"
     }
 )
 
@@ -118,6 +159,7 @@ workflow.add_edge("it_legal_expert", END)
 workflow.add_edge("math_expert", END)
 workflow.add_edge("legal_expert", END)
 workflow.add_edge("greeting_expert", END)
+workflow.add_edge("vektor_rag_expert", END)
 
 app = workflow.compile()
 
