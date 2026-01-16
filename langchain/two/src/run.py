@@ -2,7 +2,6 @@ import os
 from typing import Literal
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, SystemMessage
-from qdrant_client import QdrantClient
 
 # Core Modules
 from core.state import AgentState

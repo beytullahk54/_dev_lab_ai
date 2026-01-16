@@ -1,27 +1,15 @@
-from qdrant_client import QdrantClient
-from core.llm import llm_qwen1
+from core.llm import llm
+from core.state import AgentState
+from core.embedding_engine import text_to_vector
+from core.qdrant import query_points
 
 def vektor_rag_node(state: AgentState):
     """Vektör RAG AJANI: Mesajı vektörde sorgular"""
     print("👋 Vektör Ajanı Çalışıyor...")
-
-    client = QdrantClient(url="http://localhost:6333")
-    
-    sorgu_vektoru = text_to_vector(state['user_query'])
-    search_result = client.query_points(
-        collection_name="test_collection_2",
-        query=sorgu_vektoru,
-        limit=50,
-        score_threshold=0.70,
-        with_payload=True
-    ).points
-
-    #print(search_result)
-
-    temiz_liste = [point.payload.get("text", "") for point in search_result]
-    context = "\n".join(temiz_liste)
-    #print(temiz_liste)
-
+    array = query_points("test_collection_2", state['user_query']) 
+    context = "\n".join(array)
+    print(array)
+    print(context)
     prompt = f"""
     SADECE aşağıdaki maddelere dayanarak cevap ver:
     {context}
@@ -29,5 +17,5 @@ def vektor_rag_node(state: AgentState):
     Soru: {state['user_query']}
     """
 
-    response = llm_qwen1.invoke(prompt)
+    response = llm.invoke(prompt)
     return {"final_answer": response.content}
