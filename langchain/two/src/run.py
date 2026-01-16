@@ -72,6 +72,7 @@ def start_chat():
         result = app.invoke({"user_query": user_input, "intent": "", "final_answer": ""})
         
         # Sonucu Estetik Bastır
+        print(result)
         print(f"\n📂 [Departman: {result['intent'].upper()}]")
         print(f"🤖 Asistan: {result['final_answer']}")
         print("-" * 30)
