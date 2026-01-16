@@ -45,7 +45,7 @@ def main_router_agent(state: AgentState):
     - 'it_legal': Bilişim hukuku, KVKK, siber suçlar, internet yasaları.
     - "legal": Hukuk, kanunlar ve sözleşmeler.
     - "greeting": Merhaba, nasılsın gibi günlük sohbetler.
-    - "vektor": Vektör ile başlıyorsa buraya yönlendir
+    - "vektor" : Şehir bilgileri için buraya yönlendir
     
     Sadece kategoriyi tek kelime olarak cevapla (örn: math).
     """
@@ -113,10 +113,12 @@ def vektor_rag_node(state: AgentState):
         with_payload=True
     ).points
 
-    print(search_result)
-    temiz_liste = [point.payload.get("content", "") for point in search_result]
+    #print(search_result)
+
+    temiz_liste = [point.payload.get("text", "") for point in search_result]
     context = "\n".join(temiz_liste)
-    
+    #print(temiz_liste)
+
     prompt = f"""
     SADECE aşağıdaki maddelere dayanarak cevap ver:
     {context}
