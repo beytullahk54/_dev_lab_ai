@@ -23,7 +23,7 @@ class AgentState(TypedDict):
 # --- 2. MODEL TANIMI (QWEN3:8B) ---
 # Bilgisayarında Ollama açık olmalı ve 'ollama pull qwen3:8b' yapmış olmalısın.
 llm = ChatOllama(
-    model="qwen3:4b",
+    model="gemma3:12b",
     temperature=0,  # Router işlemleri için tutarlılık önemli
     num_predict=1024
 )

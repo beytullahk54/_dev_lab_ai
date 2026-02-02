@@ -16,8 +16,6 @@ from agents.legal_expert_node import legal_expert_node
 from agents.greeting_node import greeting_node
 from agents.vector_rag_node import vektor_rag_node
 
-# --- 4. GRAFİK VE YÖNLENDİRME MANTIĞI ---
-
 def route_decision(state: AgentState) -> Literal["math", "legal", "greeting","vektor"]:
     return state["intent"]
 
