@@ -8,7 +8,7 @@ llm = ChatOllama(
 )
 
 llm_qwen1 = ChatOllama(
-    model="gemma3:4b",
-    temperature=0,
+    model="qwen3:8b",
+    temperature=0.2,
     num_predict=1024
 )

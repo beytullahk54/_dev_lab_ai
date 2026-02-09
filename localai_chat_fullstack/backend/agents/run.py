@@ -15,6 +15,7 @@ from .agents.math_expert_node import math_expert_node
 from .agents.legal_expert_node import legal_expert_node
 from .agents.greeting_node import greeting_node
 from .agents.vector_rag_node import vektor_rag_node
+from .agents.support_rag_node import support_rag_node
 
 def route_decision(state: AgentState) -> Literal["math", "legal", "greeting","vektor"]:
     return state["intent"]
@@ -27,6 +28,7 @@ workflow.add_node("math_expert", math_expert_node)
 workflow.add_node("legal_expert", legal_expert_node)
 workflow.add_node("greeting_expert", greeting_node)
 workflow.add_node("vektor_rag_expert", vektor_rag_node)
+workflow.add_node("support_rag_expert", support_rag_node)
 
 workflow.set_entry_point("main_agent")
 
@@ -38,7 +40,8 @@ workflow.add_conditional_edges(
         "it_legal": "it_legal_expert",
         "legal": "legal_expert",
         "greeting": "greeting_expert",
-        "vektor": "vektor_rag_expert"
+        "vektor": "vektor_rag_expert",
+        "support": "support_rag_expert"
     }
 )
 
@@ -47,6 +50,7 @@ workflow.add_edge("math_expert", END)
 workflow.add_edge("legal_expert", END)
 workflow.add_edge("greeting_expert", END)
 workflow.add_edge("vektor_rag_expert", END)
+workflow.add_edge("support_rag_expert", END)
 
 app = workflow.compile()
 

@@ -9,6 +9,7 @@ def main_router_agent(state: AgentState):
     system_prompt = """
     Sen bir yönlendirme asistanısın. Gelen soruyu analiz et ve şu 3 kategoriden birini seç:
     - "math": Matematiksel işlemler ve sayısal problemler.
+    - "support" : Yazılımsal destek talepleri ve sorunlar için buraya yönlendir
     - 'it_legal': Bilişim hukuku, KVKK, siber suçlar, internet yasaları.
     - "legal": Hukuk, kanunlar ve sözleşmeler.
     - "greeting": Merhaba, nasılsın gibi günlük sohbetler.
@@ -28,6 +29,7 @@ def main_router_agent(state: AgentState):
     elif "math" in category: category = "math"
     elif "legal" in category: category = "legal"
     elif "vektor" in category: category = "vektor"
+    elif "support" in category: category = "support"
     else: category = "greeting"
     
     print(f"🔀 Karar: {category.upper()}")
