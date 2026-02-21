@@ -59,6 +59,13 @@ export default defineConfig({
           { text: 'Memory & Checkpointing', link: '/advanced/memory' },
           { text: 'Hata Yönetimi', link: '/advanced/error-handling' },
         ]
+      },
+      {
+        text: '🎯 Pratik Örnekler',
+        items: [
+          { text: 'Sınıf Geçme Ajanı', link: '/examples/sinif-gecme-agenti' },
+          { text: '🚪 Daha Fazlası Var', link: '/examples/daha-fazlasi' },
+        ]
       }
     ],
 
