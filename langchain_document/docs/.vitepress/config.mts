@@ -1,0 +1,78 @@
+import { defineConfig } from 'vitepress'
+
+export default defineConfig({
+  title: 'LangChain & LangGraph',
+  description: 'Multi-Agent Sistemler için Kapsamlı Türkçe Eğitim Dokümantasyonu',
+  lang: 'tr-TR',
+
+  themeConfig: {
+    logo: '🤖',
+    siteTitle: 'LangGraph Eğitimi',
+
+    nav: [
+      { text: 'Ana Sayfa', link: '/' },
+      { text: 'Başlangıç', link: '/introduction/what-is-langchain' },
+      { text: 'Proje Örneği', link: '/project/overview' },
+    ],
+
+    sidebar: [
+      {
+        text: '🚀 Giriş',
+        items: [
+          { text: 'LangChain Nedir?', link: '/introduction/what-is-langchain' },
+          { text: 'LangGraph Nedir?', link: '/introduction/what-is-langgraph' },
+          { text: 'Kurulum', link: '/introduction/installation' },
+        ]
+      },
+      {
+        text: '🧠 Temel Kavramlar',
+        items: [
+          { text: 'State (Durum) Yönetimi', link: '/core/state' },
+          { text: 'LLM Bağlantısı', link: '/core/llm' },
+          { text: 'Node (Düğüm) Nedir?', link: '/core/nodes' },
+          { text: 'Graph Nedir?', link: '/core/graph' },
+        ]
+      },
+      {
+        text: '🤖 Multi-Agent Mimari',
+        items: [
+          { text: 'Mimari Genel Bakış', link: '/multi-agent/overview' },
+          { text: 'Router Agent', link: '/multi-agent/router-agent' },
+          { text: 'Alt Ajanlar', link: '/multi-agent/sub-agents' },
+          { text: 'RAG Entegrasyonu', link: '/multi-agent/rag' },
+        ]
+      },
+      {
+        text: '🏗️ Proje: Qwen3 Asistan',
+        items: [
+          { text: 'Projeye Genel Bakış', link: '/project/overview' },
+          { text: 'AgentState Tasarımı', link: '/project/agent-state' },
+          { text: 'Graph Kurulumu', link: '/project/graph-setup' },
+          { text: 'Yönlendirme Mantığı', link: '/project/routing' },
+          { text: 'Tüm Sistemi Çalıştırma', link: '/project/running' },
+        ]
+      },
+      {
+        text: '📚 İleri Seviye',
+        items: [
+          { text: 'Conditional Edges', link: '/advanced/conditional-edges' },
+          { text: 'Memory & Checkpointing', link: '/advanced/memory' },
+          { text: 'Hata Yönetimi', link: '/advanced/error-handling' },
+        ]
+      }
+    ],
+
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/langchain-ai/langgraph' }
+    ],
+
+    footer: {
+      message: 'LangChain & LangGraph Türkçe Eğitim Dokümantasyonu',
+      copyright: 'Qwen3 Multi-Agent Proje Örneği ile'
+    },
+
+    search: {
+      provider: 'local'
+    }
+  }
+})
