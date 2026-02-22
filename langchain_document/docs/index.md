@@ -10,11 +10,11 @@ hero:
     alt: Multi-Agent System
   actions:
     - theme: brand
-      text: Öğrenmeye Başla
+      text: LangGraph
       link: /introduction/what-is-langchain
     - theme: alt
-      text: Projeye Bak
-      link: /project/overview
+      text: Python
+      link: /python/index
 
 features:
   - icon: 🧩
