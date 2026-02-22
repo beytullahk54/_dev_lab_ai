@@ -13,7 +13,6 @@ export default defineConfig({
     nav: [
       { text: "Ana Sayfa", link: "/" },
       { text: "Başlangıç", link: "/introduction/what-is-langchain" },
-      { text: "Proje Örneği", link: "/project/overview" },
       { text: "Python Öğreniyorum", link: "/python/index" },
     ],
 
