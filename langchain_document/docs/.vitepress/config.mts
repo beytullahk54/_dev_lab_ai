@@ -8,7 +8,7 @@ export default defineConfig({
 
   themeConfig: {
     logo: "🤖",
-    siteTitle: "LangGraph Eğitimi",
+    siteTitle: "LangGraph & Python Eğitimi ",
 
     nav: [
       { text: "Ana Sayfa", link: "/" },
