@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Hareketi Müzik Kontrolü</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f0f1a;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  h1 { font-size: 1.6rem; margin-bottom: 6px; letter-spacing: 1px; }
+  .subtitle { color: #aaa; font-size: 0.9rem; margin-bottom: 20px; }
+
+  .camera-box {
+    position: relative;
+    width: 100%;
+    max-width: 680px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #1a1a2e;
+    border: 2px solid #2a2a4a;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #feed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+  }
+  #placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #555;
+  }
+  #placeholder svg { width: 64px; height: 64px; opacity: 0.4; }
+  #placeholder p { font-size: 1rem; }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  button {
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #btn-on  { background: #22c55e; color: #fff; }
+  #btn-on:hover  { background: #16a34a; }
+  #btn-off { background: #ef4444; color: #fff; }
+  #btn-off:hover { background: #b91c1c; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  #btn-restart-mode { background: #3b3b5c; color: #ccc; border: 1px solid #555; }
+  #btn-restart-mode.active { background: #f59e0b; color: #000; border-color: #f59e0b; }
+  #btn-restart-mode:hover { opacity: 0.85; }
+
+  .music-picker {
+    margin-top: 14px;
+    width: 100%;
+    max-width: 680px;
+    background: #1a1a2e;
+    border-radius: 14px;
+    padding: 16px 24px;
+    border: 1px solid #2a2a4a;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .music-picker label {
+    font-size: 0.9rem;
+    color: #aaa;
+    white-space: nowrap;
+  }
+  .music-picker input[type=file] { display: none; }
+  #music-select {
+    flex: 1;
+    background: #2a2a4a;
+    color: #eee;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    min-width: 0;
+  }
+  #btn-pick-file {
+    background: #2a2a4a;
+    color: #ccc;
+    border: 1px solid #444;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+  #btn-pick-file:hover { background: #3a3a5c; }
+  #lbl-upload-status { font-size: 0.82rem; color: #888; }
+  #btn-upload-music { background: #6366f1; color: #fff; padding: 8px 14px; font-size: 0.85rem; }
+  #btn-upload-music:hover { background: #4f46e5; }
+  #btn-upload-music:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status-card {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 680px;
+    background: #1a1a2e;
+    border-radius: 14px;
+    padding: 18px 24px;
+    border: 1px solid #2a2a4a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    min-width: 180px;
+    white-space: nowrap;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #555;
+    transition: background 0.3s;
+  }
+  .dot.green  { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+  .dot.red    { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+  .dot.purple { background: #a855f7; box-shadow: 0 0 8px #a855f7; }
+
+  .info { margin-top: 14px; font-size: 0.82rem; color: #666; text-align: center; }
+
+  .progress-card {
+    margin-top: 14px;
+    width: 100%;
+    max-width: 680px;
+    background: #1a1a2e;
+    border-radius: 14px;
+    padding: 16px 24px;
+    border: 1px solid #2a2a4a;
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    color: #aaa;
+  }
+  .progress-header .track-name {
+    font-weight: 600;
+    color: #eee;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 300px;
+  }
+  .progress-times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #888;
+    margin-top: 6px;
+  }
+  .progress-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: #2a2a4a;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #a855f7, #22c55e);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.5s linear;
+  }
+</style>
+</head>
+<body>
+
+<h1>✋ El Hareketi Müzik Kontrolü</h1>
+<p class="subtitle">El Kaldır → Çal &nbsp;|&nbsp; Yumruk → Dur &nbsp;|&nbsp; 1.Parmak ↕ = +30sn &nbsp;|&nbsp; 2.Parmak ↕ = -30sn</p>
+
+<div class="camera-box">
+  <img id="feed" src="" alt="Kamera">
+  <div id="placeholder">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M15 10l4.553-2.07A1 1 0 0121 8.845v6.31a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+    </svg>
+    <p>Kamerayı başlatmak için butona basın</p>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="btn-on"  onclick="cameraOn()">▶ Kamerayı Aç</button>
+  <button id="btn-off" onclick="cameraOff()" disabled>⏹ Kamerayı Kapat</button>
+  <button id="btn-restart-mode" onclick="toggleRestartMode()">🔁 Devam Et</button>
+</div>
+
+<div class="status-card">
+  <div class="badge">
+    <div class="dot" id="dot-camera"></div>
+    <span id="lbl-camera">Kamera: Kapalı</span>
+  </div>
+  <div class="badge">
+    <div class="dot" id="dot-hand"></div>
+    <span id="lbl-hand">El: Algılanmadı</span>
+  </div>
+  <div class="badge">
+    <div class="dot" id="dot-music"></div>
+    <span id="lbl-music">Müzik: Sessiz</span>
+  </div>
+</div>
+
+<div class="progress-card" id="progress-card">
+  <div class="progress-header">
+    <span class="track-name" id="track-name">Müzik dosyası bulunamadı</span>
+    <span id="lbl-remaining">--:-- kaldı</span>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+  <div class="progress-times">
+    <span id="lbl-pos">0:00</span>
+    <span id="lbl-dur">0:00</span>
+  </div>
+</div>
+
+<div class="music-picker">
+  <label>🎵 Müzik:</label>
+  <select id="music-select" onchange="selectMusic(this.value)"></select>
+  <button id="btn-pick-file" onclick="document.getElementById('file-input').click()">➕ Yeni</button>
+  <input type="file" id="file-input" accept=".mp3,.wav,.ogg" onchange="filePicked(this)">
+  <span id="lbl-upload-status"></span>
+  <button id="btn-upload-music" onclick="uploadMusic()" disabled style="display:none">Yükle</button>
+</div>
+
+<p class="info">Desteklenen formatlar: mp3, wav, ogg</p>
+
+<script>
+let polling = null;
+let currentMusicFile = null;
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const r = await fetch('/status');
+  const d = await r.json();
+  const active = d.music_file ? d.music_file.split('/').pop() : null;
+  await loadMusicList(active);
+  currentMusicFile = active;
+});
+
+async function cameraOn() {
+  document.getElementById('btn-on').disabled = true;
+  const r = await fetch('/camera/on', {method:'POST'});
+  const d = await r.json();
+  if (d.ok) {
+    const feed = document.getElementById('feed');
+    feed.src = '/video_feed?' + Date.now();
+    feed.style.display = 'block';
+    document.getElementById('placeholder').style.display = 'none';
+    document.getElementById('btn-off').disabled = false;
+    startPolling();
+  } else {
+    alert('Kamera açılamadı: ' + (d.error || ''));
+    document.getElementById('btn-on').disabled = false;
+  }
+}
+
+async function cameraOff() {
+  stopPolling();
+  await fetch('/camera/off', {method:'POST'});
+  document.getElementById('feed').style.display = 'none';
+  document.getElementById('placeholder').style.display = 'flex';
+  document.getElementById('btn-on').disabled = false;
+  document.getElementById('btn-off').disabled = true;
+  setDot('dot-camera', ''); setLabel('lbl-camera', 'Kamera: Kapalı');
+  setDot('dot-hand',   ''); setLabel('lbl-hand',   'El: Algılanmadı');
+  setDot('dot-music',  ''); setLabel('lbl-music',  'Müzik: Sessiz');
+}
+
+function startPolling() {
+  polling = setInterval(async () => {
+    try {
+      const r = await fetch('/status');
+      const d = await r.json();
+      setDot('dot-camera', d.camera_on ? 'green' : '');
+      setLabel('lbl-camera', d.camera_on ? 'Kamera: Açık' : 'Kamera: Kapalı');
+      const handColor = d.status === 'Yumruk - Dur' ? 'red' : (d.hand_up ? 'green' : '');
+      setDot('dot-hand', handColor);
+      setLabel('lbl-hand', d.status || 'El Algılanmadı');
+      setDot('dot-music', d.music_playing ? 'purple' : '');
+      setLabel('lbl-music', d.music_playing ? '🎵 Müzik Çalıyor' : '🔇 Müzik Sessiz');
+
+      const pos = d.music_pos || 0;
+      const dur = d.music_duration || 0;
+      document.getElementById('track-name').textContent = d.music_file || 'Müzik dosyası bulunamadı';
+      document.getElementById('lbl-pos').textContent = fmtTime(pos);
+      document.getElementById('lbl-dur').textContent = fmtTime(dur);
+      const pct = dur > 0 ? Math.min(100, (pos / dur) * 100) : 0;
+      document.getElementById('progress-fill').style.width = pct + '%';
+      const remaining = Math.max(0, dur - pos);
+      document.getElementById('lbl-remaining').textContent = dur > 0 ? fmtTime(remaining) + ' kaldı' : '--:--';
+      const btn = document.getElementById('btn-restart-mode');
+      if (d.restart_mode) {
+        btn.textContent = '🔁 Baştan Başla';
+        btn.classList.add('active');
+      } else {
+        btn.textContent = '🔁 Devam Et';
+        btn.classList.remove('active');
+      }
+    } catch(e) {}
+  }, 500);
+}
+
+function stopPolling() { clearInterval(polling); polling = null; }
+function setDot(id, cls)   { document.getElementById(id).className = 'dot ' + cls; }
+function setLabel(id, txt) { document.getElementById(id).textContent = txt; }
+let pickedFile = null;
+
+async function loadMusicList(selectFilename) {
+  const r = await fetch('/music/list');
+  const d = await r.json();
+  const sel = document.getElementById('music-select');
+  sel.innerHTML = '';
+  for (const f of d.files) {
+    const opt = document.createElement('option');
+    opt.value = f; opt.textContent = f;
+    sel.appendChild(opt);
+  }
+  if (selectFilename) sel.value = selectFilename;
+}
+
+async function selectMusic(filename) {
+  if (!filename) return;
+  const r = await fetch('/music/select', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({filename})
+  });
+  const d = await r.json();
+  if (d.ok) {
+    currentMusicFile = filename;
+    document.getElementById('track-name').textContent = filename;
+  }
+}
+
+function filePicked(input) {
+  pickedFile = input.files[0];
+  const btn = document.getElementById('btn-upload-music');
+  const lbl = document.getElementById('lbl-upload-status');
+  if (pickedFile) {
+    lbl.textContent = pickedFile.name;
+    btn.style.display = '';
+    btn.disabled = false;
+    btn.textContent = 'Yükle';
+  }
+}
+
+async function uploadMusic() {
+  if (!pickedFile) return;
+  const btn = document.getElementById('btn-upload-music');
+  btn.disabled = true;
+  btn.textContent = 'Yükleniyor...';
+  const fd = new FormData();
+  fd.append('file', pickedFile);
+  try {
+    const r = await fetch('/music/upload', {method: 'POST', body: fd});
+    const d = await r.json();
+    if (d.ok) {
+      await loadMusicList(d.filename);
+      document.getElementById('track-name').textContent = d.filename;
+      document.getElementById('lbl-upload-status').textContent = '✅ Yüklendi';
+      btn.style.display = 'none';
+    } else {
+      alert('Hata: ' + d.error);
+      btn.disabled = false;
+      btn.textContent = 'Yükle';
+    }
+  } catch(e) {
+    alert('Yükleme hatası');
+    btn.disabled = false;
+    btn.textContent = 'Yükle';
+  }
+}
+
+async function toggleRestartMode() {
+  const r = await fetch('/music/restart_mode', {method:'POST'});
+  const d = await r.json();
+  const btn = document.getElementById('btn-restart-mode');
+  if (d.restart_mode) {
+    btn.textContent = '🔁 Baştan Başla';
+    btn.classList.add('active');
+  } else {
+    btn.textContent = '🔁 Devam Et';
+    btn.classList.remove('active');
+  }
+}
+
+function fmtTime(sec) {
+  const s = Math.floor(sec);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+</script>
+</body>
+</html>
